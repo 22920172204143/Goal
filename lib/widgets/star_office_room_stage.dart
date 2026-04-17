@@ -158,7 +158,21 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
 
   List<Widget> _buildDeskProps() {
     final deskCount = widget.roomState.deskStackCount.clamp(0, 8);
+    final tier = widget.roomState.moneyTier;
     final widgets = <Widget>[];
+
+    if (tier >= 3) {
+      widgets.add(
+        _ambientGlow(
+          left: 110,
+          top: 395,
+          width: 200,
+          height: 80,
+          color: const Color(0xFFF5D66A),
+          opacity: 0.12,
+        ),
+      );
+    }
 
     widgets.add(
       _stageAsset(
@@ -185,19 +199,39 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
       );
     }
 
+    final bundleSize = tier >= 3 ? 40.0 : (tier >= 2 ? 36.0 : 32.0);
+    final bundleHeight = tier >= 3 ? 26.0 : (tier >= 2 ? 23.0 : 20.0);
+
     for (var index = 0; index < deskCount.clamp(0, 4); index++) {
       widgets.add(
         _stageAsset(
           left: 188 + index * 18,
           top: 419 - (index.isOdd ? 5 : 0),
-          width: 32,
-          height: 20,
+          width: bundleSize,
+          height: bundleHeight,
           child: _MoneyBundle(
-            level: widget.roomState.moneyTier,
+            level: tier,
             compact: index.isOdd,
           ),
         ),
       );
+    }
+
+    if (deskCount >= 5) {
+      for (var index = 0; index < (deskCount - 4).clamp(0, 4); index++) {
+        widgets.add(
+          _stageAsset(
+            left: 108 + index * 16,
+            top: 432 - (index.isOdd ? 3 : 0),
+            width: bundleSize - 4,
+            height: bundleHeight - 2,
+            child: _MoneyBundle(
+              level: tier,
+              compact: true,
+            ),
+          ),
+        );
+      }
     }
 
     if (deskCount >= 5) {
@@ -216,23 +250,57 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
   }
 
   List<Widget> _buildStashProps() {
-    final cabinetCount = widget.roomState.cabinetStackCount.clamp(0, 6);
+    final cabinetCount = widget.roomState.cabinetStackCount.clamp(0, 9);
     final floorCount = widget.roomState.floorCashCount.clamp(0, 8);
+    final tier = widget.roomState.moneyTier;
     final widgets = <Widget>[];
 
-    for (var index = 0; index < cabinetCount; index++) {
+    if (cabinetCount >= 4) {
+      widgets.add(
+        _ambientGlow(
+          left: 1080,
+          top: 310,
+          width: 120,
+          height: 120,
+          color: const Color(0xFFF5D66A),
+          opacity: 0.10,
+        ),
+      );
+    }
+
+    final cabinetBundleW = cabinetCount >= 6 ? 34.0 : 28.0;
+    final cabinetBundleH = cabinetCount >= 6 ? 22.0 : 18.0;
+
+    for (var index = 0; index < cabinetCount.clamp(0, 6); index++) {
       widgets.add(
         _stageAsset(
-          left: 1116 + (index % 2) * 24,
-          top: 340 + (index ~/ 2) * 20,
-          width: 26,
-          height: 18,
+          left: 1108 + (index % 2) * 28,
+          top: 332 + (index ~/ 2) * 24,
+          width: cabinetBundleW,
+          height: cabinetBundleH,
           child: _MoneyBundle(
-            level: widget.roomState.moneyTier + 1,
+            level: tier + 1,
             compact: true,
           ),
         ),
       );
+    }
+
+    if (cabinetCount >= 7) {
+      for (var index = 0; index < (cabinetCount - 6).clamp(0, 3); index++) {
+        widgets.add(
+          _stageAsset(
+            left: 1092 + index * 30,
+            top: 410,
+            width: 30,
+            height: 20,
+            child: _MoneyBundle(
+              level: tier + 1,
+              compact: false,
+            ),
+          ),
+        );
+      }
     }
 
     if (floorCount > 0) {
@@ -251,16 +319,68 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
       );
     }
 
+    if (floorCount >= 2) {
+      widgets.add(
+        _stageAsset(
+          left: 820,
+          top: 560,
+          width: 36,
+          height: 24,
+          child: _MoneyEnvelope(
+            accent: floorCount >= 4
+                ? const Color(0xFFE0C46A)
+                : const Color(0xFFB5D4A8),
+          ),
+        ),
+      );
+    }
+
     if (floorCount >= 3) {
       widgets.add(
         _stageAsset(
           left: 725,
           top: 244,
-          width: 24,
-          height: 16,
+          width: 28,
+          height: 18,
           child: _MoneyBundle(
-            level: widget.roomState.moneyTier,
+            level: tier,
             compact: true,
+          ),
+        ),
+      );
+    }
+
+    if (floorCount >= 4) {
+      widgets.add(
+        _stageAsset(
+          left: 680,
+          top: 540,
+          width: 44,
+          height: 30,
+          child: const _MoneyBag(),
+        ),
+      );
+    }
+
+    if (floorCount >= 5) {
+      widgets.add(
+        _stageAsset(
+          left: 560,
+          top: 555,
+          width: 20,
+          height: 16,
+          child: const _CoinPile(),
+        ),
+      );
+      widgets.add(
+        _stageAsset(
+          left: 480,
+          top: 560,
+          width: 32,
+          height: 20,
+          child: _MoneyBundle(
+            level: tier,
+            compact: false,
           ),
         ),
       );
@@ -372,6 +492,15 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
             height: 12,
             child: const _FocusDots(),
           ),
+          _stageAsset(
+            left: 320,
+            top: 385,
+            width: 64,
+            height: 64,
+            child: _AssetFrame(
+              assetPath: 'assets/star_office/coffee_${tick % 8}.png',
+            ),
+          ),
         ];
       case AvatarState.read:
         return <Widget>[
@@ -465,7 +594,8 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
             width: 168,
             height: 168,
             child: _AssetFrame(
-              assetPath: 'assets/star_office/star_work_${tick % 8}.png',
+              assetPath:
+                  'assets/star_office/star_celebrate_${32 + tick % 6}.png',
             ),
           ),
           _stageAsset(
@@ -486,6 +616,16 @@ class _StarOfficeRoomStageState extends State<StarOfficeRoomStage>
             child: _Sparkle(
               color: const Color(0xFF9AE59A),
               angle: -_controller.value * math.pi * 2,
+            ),
+          ),
+          _stageAsset(
+            left: 108,
+            top: 244,
+            width: 18,
+            height: 18,
+            child: _Sparkle(
+              color: const Color(0xFFF5D66A),
+              angle: _controller.value * math.pi * 3,
             ),
           ),
         ];
@@ -890,6 +1030,61 @@ class _SmallPlantProp extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF86C77E),
               borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MoneyBag extends StatelessWidget {
+  const _MoneyBag();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: 32,
+            height: 24,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4A853),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF8B6F28)),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          left: 10,
+          top: 0,
+          child: Container(
+            width: 12,
+            height: 8,
+            decoration: BoxDecoration(
+              color: const Color(0xFFB88B2D),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 13,
+          top: 12,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF7D67B),
+              shape: BoxShape.circle,
             ),
           ),
         ),
