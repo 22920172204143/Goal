@@ -1,11 +1,10 @@
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../controllers/app_controller.dart';
-import '../game/small_goal_room_game.dart';
 import '../models/room_visual_state.dart';
 import '../utils/formatters.dart';
 import '../widgets/metric_card.dart';
+import '../widgets/star_office_room_stage.dart';
 
 class RoomPage extends StatefulWidget {
   const RoomPage({
@@ -22,24 +21,11 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
-  late final SmallGoalRoomGame _game;
-
-  @override
-  void initState() {
-    super.initState();
-    _game = SmallGoalRoomGame();
-  }
-
   @override
   Widget build(BuildContext context) {
     final stats = widget.controller.stats;
     final roomState = widget.controller.roomState;
     final settings = widget.controller.settings;
-    _game.applySnapshot(
-      roomState: roomState,
-      stats: stats,
-      settings: settings,
-    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
@@ -84,15 +70,19 @@ class _RoomPageState extends State<RoomPage> {
         const SizedBox(height: 12),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: AspectRatio(
-                    aspectRatio: 16 / 11,
-                    child: GameWidget(game: _game),
+                    aspectRatio: 16 / 9,
+                    child: StarOfficeRoomStage(
+                      roomState: roomState,
+                      stats: stats,
+                      settings: settings,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -105,7 +95,9 @@ class _RoomPageState extends State<RoomPage> {
                 const SizedBox(height: 10),
                 Text(
                   roomState.statusMessage,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        height: 1.35,
+                      ),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -194,8 +186,11 @@ class _RoomPageState extends State<RoomPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  record.note.isEmpty ? record.category : record.note,
-                                  style: const TextStyle(fontWeight: FontWeight.w700),
+                                  record.note.isEmpty
+                                      ? record.category
+                                      : record.note,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -248,8 +243,9 @@ class _RoomChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
       ),
       child: Text(label),
     );

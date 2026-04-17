@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 ThemeData buildSmallGoalTheme() {
-  const background = Color(0xFF101824);
-  const surface = Color(0xFF1A2535);
-  const card = Color(0xFF24344B);
-  const accent = Color(0xFF62E3A6);
-  const gold = Color(0xFFF2C96B);
+  const background = Color(0xFF111827);
+  const surface = Color(0xFF1C2638);
+  const card = Color(0xFF26364F);
+  const accent = Color(0xFF76E4AE);
+  const gold = Color(0xFFF2CD79);
 
   final base = ThemeData(
     useMaterial3: true,
@@ -28,6 +28,28 @@ ThemeData buildSmallGoalTheme() {
         borderRadius: BorderRadius.all(Radius.circular(18)),
       ),
     ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: const Color(0xFF182235),
+      indicatorColor: gold,
+      surfaceTintColor: Colors.transparent,
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(color: Color(0xFF1A1D21));
+        }
+        return const IconThemeData(color: Colors.white70);
+      }),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        return TextStyle(
+          fontSize: 12,
+          fontWeight: states.contains(WidgetState.selected)
+              ? FontWeight.w800
+              : FontWeight.w600,
+          color: states.contains(WidgetState.selected)
+              ? const Color(0xFF1A1D21)
+              : Colors.white70,
+        );
+      }),
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: background,
       surfaceTintColor: Colors.transparent,
@@ -48,6 +70,27 @@ ThemeData buildSmallGoalTheme() {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: accent, width: 1.5),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: accent,
+        foregroundColor: const Color(0xFF132118),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       ),
     ),
     chipTheme: base.chipTheme.copyWith(

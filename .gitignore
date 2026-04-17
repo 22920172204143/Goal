@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local Android/Gradle project files (root-level)
+/.gradle/
+/app/build/
+/local.properties
+
+# Local screenshots / debug previews
+/*_preview.png
+/goal_emulator*.png
+/goal_stage_step*.png
