@@ -1,184 +1,325 @@
 # Goal（小目标）
 
-`Goal` 是一款把"现实收入记录"映射为"像素房间成长反馈"的个人财富激励应用。核心体验是：每记一笔收入，房间里的钱堆变多、小人做出搬钱庆祝动作，让用户在攒钱过程中获得即时的视觉成就感。
+把每一笔现实收入映射为像素房间里可见的财富变化——**钱堆随累计收入增长、小人在记录新收入时做庆祝动作**，让用户在攒钱过程中获得即时的视觉成就感。
+
+> 这份 README 同时也是 **Agent 交接文档**，后续 Agent 接手时请先完整阅读。
 
 ---
 
-## 产品设计说明
+## 一、应用是什么
 
-### 一、应用定位
+`Goal` 是一个面向个人的收入记录 + 游戏化反馈应用，基于 Flutter 开发，以 Android 为主。
 
-把每一笔现实收入映射为像素房间里可见的财富变化——钱堆随累计收入增长、小人有搬钱/庆祝动作，让用户**一眼就有赚钱攒钱的成就感**。
+**核心体验**：
+- 用户手动记录每一笔收入（金额、分类、备注、日期）
+- 主界面是一个像素风办公室，里面有一张桌子、一个小人
+- 累计收入越多 → 桌上钱堆越多、储物柜越满、房间等级越高
+- 每次新记录 → 小人进入 `celebrate` 状态，做出搬钱 / 庆祝动作，配合金色光晕
+
+**与普通记账 App 的差异**：重点不是"记账"，而是"把看不见的钱变成看得见的房间"。
 
 ---
 
-### 二、核心功能
+## 二、产品目标
 
-| 功能 | 说明 |
+| 目标 | 说明 |
 |------|------|
-| 收入记录 | 填写金额、分类（工资/副业/奖金/接单/理财/其他）、备注、日期 |
-| 每日目标 | 设置每日目标金额，进度条实时显示完成比例 |
-| 统计 | 今日 / 本周 / 本月 / 累计收入，连续记录天数 |
-| 房间反馈 | 核心界面，收入越多房间越富（详见第三节）|
-| 明细管理 | 查看、编辑、删除历史收入记录 |
+| 即时反馈 | 一记就看到房间变化，不需要切页 |
+| 成就可视化 | 一眼看出最近赚了多少 / 攒了多少 |
+| 长期黏性 | 连续记录天数、目标达成、房间升级带来正反馈 |
+| 低负担 | 只要记金额 + 分类就够，不强制备注 |
 
 ---
 
-### 三、房间反馈系统（最核心）
+## 三、视觉风格
 
-#### 场景素材
-直接使用 [Star-Office-UI](https://github.com/ringhyacinth/Star-Office-UI) 的完整像素办公室场景——**保留原始背景图（office_bg.webp）、桌子（desk-v3.webp）、沙发、窗户等全套家具**，不要自己代码绘制房间，直接用原图铺满作为场景底图，还原像素风办公室的完整氛围。
+### 素材来源（必须保留）
 
-#### 财富分层（从少到多）
+**直接使用 [Star-Office-UI](https://github.com/ringhyacinth/Star-Office-UI) 的开源像素素材**，已拷贝到 `assets/star_office/`。
 
-```
-tier 0（¥0）      → 桌面空，只有角色
-tier 1（¥200+）   → 桌上出现 2 沓钱（整齐竖排）
-tier 2（¥800+）   → 桌上 4 沓，右侧储物柜开始堆钱
-tier 3（¥2000+）  → 桌上 6 沓 + 柜里满，地面开始出现钱袋
-tier 4（¥5000+）  → 桌面全满 8 沓 + 地面钱袋/信封散落
-```
+关键素材（**不要删，不要代码重绘替换**）：
 
-**钱的展示原则**：
-- 钱捆要有立体感，有光影和色差，不能是纯色 2D 矩形
-- 整齐等间距排列，像真实钞票捆放在桌上
-- 不同 tier 用不同颜色腰封区分（蓝→绿→金）
-- 储物柜要视觉上在背景图中实际的柜子位置，不能放在空白处
+| 文件 | 用途 |
+|------|------|
+| `office_bg.webp` | 整张办公室全景背景图（房间舞台底图） |
+| `desk-v3.webp` | 桌子（左区） |
+| `sofa-idle-v3.png` | 沙发（中区，阅读/玩手机状态位置） |
+| `serverroom_0~5.png` | 服务器机柜帧动画（右区，Lv1 后出现） |
+| `poster_0/4/8/12.png` | 墙面海报（按房间等级切换） |
+| `flower_2/5/10/15.png` | 桌边花盆（按房间等级切换） |
+| `cat_13/14/15.png` | 宠物猫（房间等级 1 后出现） |
+| `star_idle_0~7.png` | 角色闲逛动画 |
+| `star_work_0~7.png` | 角色工作动画 |
+| `star_read_16~23.png` | 角色阅读动画 |
+| `star_phone_8~15.png` | 角色刷手机动画 |
+| `star_celebrate_32~37.png` | **角色庆祝动画（新记录后播放）** |
+| `coffee_0~7.png` | 咖啡机帧动画（可放桌边） |
 
-#### 角色互动
+### 关键视觉原则
 
-| 状态 | 触发条件 | 素材 |
-|------|---------|------|
-| `celebrate` | 新记录后 8 秒 | `star_celebrate_32~37.png`，大幅上下弹跳 + 三颗闪光 |
-| `work` | 今日收入 < 目标 60% | `star_work_0~7.png` |
-| `read` | 轮转 | `star_read_16~23.png` |
-| `phone` | 轮转 | `star_phone_8~15.png` |
-| `idle` | 轮转 | `star_idle_0~7.png` |
-| `sleep` | 23:00~06:00 | `cat_15.png` + Zzz |
-
-**搬钱动作**：记录新收入时，角色进入 `celebrate` 状态（用专属 spritesheet），配合全屏金色光晕扩散动画，持续 8 秒后恢复正常状态。
-
-#### 房间升级解锁
-- Lv1（¥800+）：右上角出现海报、服务器机柜亮起动画
-- Lv2（¥3000+）：桌边出现花盆（flower_10.png）
-- Lv3（¥10000+）：小植物、宠物猫出现（cat_13/14/15.png）
+1. **整张办公室全景作为底图**，不要只显示一个房间；左中右三区（桌子 / 沙发 / 服务器机柜）同时可见
+2. **不要代码绘制墙壁、地板、窗户**——所有场景元素来自素材图
+3. **钱堆是代码绘制的小部件**（`_MoneyBundle`），覆盖在桌面、柜子、地板的正确像素坐标上
+4. **安卓端曾出现 spritesheet 错帧 / 乱码条纹**，解决方案是用**预切单帧 PNG 切换**，不要用 SpriteSheet 组件
 
 ---
 
-### 四、界面设计
+## 四、界面设计
 
-#### 主页（房间页）
+### 主页（房间页）
 
 ```
-┌─────────────────────────────┐
-│  小目标              今日¥XX │  ← 顶部标题 + 今日金额
-├─────────────────────────────┤
-│                             │
-│   ┌─────────────────────┐   │
-│   │                     │   │
-│   │   像素房间（4:3）    │   │  ← 房间占满宽度，高度约55%屏幕
-│   │   office_bg全景图   │   │
-│   │   桌上钱堆 + 角色   │   │
-│   └─────────────────────┘   │
-│                             │
-│  ████████████░░░░  68%      │  ← 今日目标进度条
-│  小人正在搬钱入柜。今天还差¥XX │  ← 状态文字
-│                             │
-│  [桌面 4沓] [柜子 6组] [Lv2] │  ← 状态芯片
-│                             │
-│  最近进账                    │
-│  帮朋友修图 · 副业    ¥88   │
-│  今日结算 · 工资      ¥168  │
-└─────────────────────────────┘
+┌──────────────────────────────┐
+│  小目标                       │  ← 标题
+│  把现实收入堆进你的像素房间里  │  ← 副标题
+│                              │
+│ [今日 ¥XX]   [连续 N 天]      │  ← 指标卡
+│                              │
+│ ┌──────────────────────────┐ │
+│ │                          │ │
+│ │    像素办公室全景 16:9    │ │  ← 房间舞台
+│ │  (office_bg + 角色 + 钱)  │ │
+│ │                          │ │
+│ └──────────────────────────┘ │
+│  ████████░░░░  进度条         │  ← 今日目标
+│  小人正在搬钱入柜。还差 ¥XX   │  ← 状态文字
+│ [桌面 4沓] [柜子 6组] [Lv2]   │  ← 状态芯片
+│                              │
+│  最近进账                     │
+│  帮朋友修图 · 副业      ¥88  │
+│  今日结算 · 工资       ¥168  │
+└──────────────────────────────┘
+                         [+ 记收入]  ← FAB
 ```
 
-#### 颜色方案（支持双模式）
+### 四个 Tab
+
+- **房间**：主界面，游戏化反馈
+- **明细**：全部收入记录，可编辑 / 删除
+- **统计**：今日 / 周 / 月 / 累计
+- **设置**：每日目标、策略说明、参考项目
+
+### 颜色方案
 
 **暗色模式（默认）**：
-- 背景 `#111827`，卡片 `#26364F`，accent 绿 `#76E4AE`，金色 `#F2CD79`
+- 背景 `#111827`，卡片 `#26364F`
+- accent 绿 `#76E4AE`，金色 `#F2CD79`
 
-**亮色模式**：
-- 背景 `#FFFFFF`，卡片 `#F5F7FA`，文字 `#1A1D21`，accent 绿 `#2DB87A`，金色 `#D4A017`
-- 切换入口在设置页，持久化保存
-
-#### 整体风格
-- Material 3，圆角卡片（18px），无边框投影
-- 像素房间内部保持 `FilterQuality.none`（锐利像素风）
-- 全局字体加粗（w700~w900），数字要大且醒目
-- 底部导航：房间 / 明细 / 统计 / 设置
+**亮色模式（待接入，issue 列表中）**：
+- 背景 `#FFFFFF`，卡片 `#F5F7FA`，文字 `#1A1D21`
+- accent 绿 `#2DB87A`，金色 `#D4A017`
 
 ---
 
-### 五、技术栈
+## 五、数据层（**禁止改动**）
+
+### 状态模型
+
+- `lib/models/income_record.dart`：单笔收入记录
+- `lib/models/app_stats.dart`：派生统计数据（今日/周/月/累计/连续天数/进度）
+- `lib/models/app_settings.dart`：用户设置（目标、货币、策略）
+- `lib/models/room_visual_state.dart`：房间视觉状态（钱堆数、房间等级、角色状态、庆祝动画 nonce）
+
+### 收入 → 房间状态的映射（`lib/services/room_state_service.dart`）
+
+#### 钱堆层级（`moneyTier`）
+| 累计收入 | tier |
+|---------|------|
+| ≥ ¥5000 | 4 |
+| ≥ ¥2000 | 3 |
+| ≥ ¥800  | 2 |
+| ≥ ¥200  | 1 |
+| 其他    | 0 |
+
+#### 桌面 / 柜子 / 地面钱堆数量
+| 累计收入 | deskStack | cabinetStack | floorCash |
+|---------|-----------|--------------|-----------|
+| ≥ ¥8000 | 8 | 9 | 5 |
+| ≥ ¥5000 | 8 | 9 | 3 |
+| ≥ ¥3000 | 6 | 6 | 1 |
+| ≥ ¥2500 | 6 | 3 | 1 |
+| ≥ ¥2000 | 6 | 3 | 0 |
+| ≥ ¥1200 | 4 | 3 | 0 |
+| ≥ ¥800  | 4 | 0 | 0 |
+| ≥ ¥200  | 2 | 0 | 0 |
+| > ¥0    | 1 | 0 | 0 |
+| 其他    | 0 | 0 | 0 |
+
+#### 房间等级（`roomUpgradeLevel`）
+| 累计收入 | 等级 | 解锁内容 |
+|---------|------|---------|
+| ≥ ¥10000 | 3 | 小植物、顶级宠物 |
+| ≥ ¥3000  | 2 | 桌边花盆 |
+| ≥ ¥800   | 1 | 墙面海报 + 服务器机柜动画 + 基础宠物 |
+| 其他     | 0 | 基础房间 |
+
+#### 角色状态（`AvatarState`）
+- `celebrate`：新记录后 8 秒内（`lastCelebrationAt` 触发）
+- `sleep`：当前时间 23:00 ~ 06:00
+- `work`：今日收入 < 目标 60%
+- 其他：`read / phone / idle / work` 按分钟轮转
+
+### 即时反馈
+
+`AppController.addIncome()` 会：
+1. 插入新记录，排序保存
+2. 更新 `_lastCelebrationAt = now`
+3. 递增 `_animationNonce`
+4. 触发 `notifyListeners()`
+5. 房间舞台检测到 `animationNonce` 变化 → 角色进入 `celebrate` 状态 8 秒
+
+---
+
+## 六、代码结构
+
+```
+lib/
+├── main.dart                          入口
+├── app/
+│   ├── app.dart                       MaterialApp + AppController 持有
+│   └── theme.dart                     暗色主题定义
+├── controllers/
+│   └── app_controller.dart            唯一状态中心（ChangeNotifier）
+├── models/                            数据模型（禁止改动字段含义）
+│   ├── income_record.dart
+│   ├── app_stats.dart
+│   ├── app_settings.dart
+│   └── room_visual_state.dart
+├── services/                          纯函数映射层
+│   ├── stats_service.dart             记录 → 统计
+│   └── room_state_service.dart        统计 → 视觉状态
+├── repositories/
+│   └── local_app_repository.dart      shared_preferences 持久化
+├── screens/                           页面
+│   ├── home_shell.dart                底部导航
+│   ├── room_page.dart                 房间页
+│   ├── records_page.dart              明细页
+│   ├── stats_page.dart                统计页
+│   └── settings_page.dart             设置页
+├── widgets/
+│   ├── star_office_room_stage.dart    ★ 房间主舞台（视觉重点）
+│   ├── income_editor_sheet.dart       记录编辑 BottomSheet
+│   └── metric_card.dart               指标卡
+└── utils/
+    └── formatters.dart                金额 / 日期格式化
+
+assets/star_office/                    Star-Office-UI 素材（不要删）
+docs/
+├── state_mapping.md                   收入→房间映射详解
+├── implementation_roadmap.md          路线图
+├── open_source_references.md          开源参考
+└── AGENT_TAKEOVER_PROMPT.md           下一位 agent 的提示词
+```
+
+---
+
+## 七、技术栈
 
 | 层 | 方案 |
 |----|------|
-| 框架 | Flutter（Android 优先） |
+| 框架 | Flutter 3.x（Android 优先） |
 | 状态管理 | `ChangeNotifier` + `AnimatedBuilder` |
-| 持久化 | `shared_preferences` |
-| 动画 | `AnimationController` 驱动帧切换 + 补间动画 |
-| 素材 | `assets/star_office/`（Star-Office-UI 开源素材） |
+| 持久化 | `shared_preferences`（仅两个 key：`income_records`、`app_settings`） |
+| 动画 | `AnimationController` 驱动 tick 做单帧切换 |
+| 图片质量 | `FilterQuality.none`（保持像素锐利） |
 | 包名 | `com.yourcompany.smallgoal.small_goal_app` |
 
 ---
 
-### 六、参考资源
+## 八、运行 / 构建
 
-- **主要素材**：[Star-Office-UI](https://github.com/ringhyacinth/Star-Office-UI) — 像素办公室全套素材
-- **角色行为参考**：[Pixel Agents](https://github.com/pablodelucca/pixel-agents)
-- **场景布局参考**：[Lobster Lounge](https://github.com/tsconfigdotjson/lobster-lounge)
-
----
-
-### 七、当前待解决问题（接管时优先处理）
-
-1. 房间场景退回使用 `office_bg.webp` 全景背景图，不要代码绘制房间
-2. 钱捆要有立体感（渐变/光影），不能是纯 2D 矩形
-3. `celebrate` 状态要用 `star_celebrate_32~37.png`，动作要明显
-4. 储物柜区域要落在背景图中实际的柜子位置上
-5. 房间展示窗口占满屏幕宽度，高度比例 4:3
-6. 支持亮色/暗色主题切换，在设置页配置
-
----
-
-## 快速运行
+### 开发运行
 
 ```bash
 flutter pub get
-flutter run
+flutter run -d emulator-5556
 ```
 
-仅打 Android Debug 包：
+模拟器 AVD 名：`goal`，设备 ID：`emulator-5556`
+
+### 打包 Debug APK
 
 ```bash
 flutter build apk --debug
+# 产物：build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-## Android Studio 一键运行注意事项
+需要 **JDK 17**（Android Gradle Plugin 要求），Java 11 会编译失败。
 
-1. 打开项目根目录：`E:\AiProgram\Goal`
-2. 确保已安装并启用插件：`Flutter`、`Dart`
-3. Dart SDK 路径建议使用：
-   - `E:\flutter\bin\cache\dart-sdk`
-4. 设备建议固定：
-   - AVD 名称：`goal`
-   - 对应设备 ID 常见为：`emulator-5556`
-5. 若出现签名冲突弹窗（different signature），可卸载旧包再装：
-   - 包名：`com.yourcompany.smallgoal.small_goal_app`
+### 每次改动后必做
 
-## 主要目录
+```bash
+flutter analyze   # 必须无问题
+```
 
-- `lib/controllers/`：应用状态控制
-- `lib/services/`：统计与房间状态映射
-- `lib/screens/`：页面结构
-- `lib/widgets/star_office_room_stage.dart`：当前房间主舞台渲染
-- `assets/star_office/`：复用素材与预切帧
-- `docs/state_mapping.md`：收入到房间状态映射
-- `docs/implementation_roadmap.md`：阶段路线
-- `docs/AGENT_TAKEOVER_PROMPT.md`：给下一位 agent 的接管提示词
+---
 
-## 已知限制
+## 九、当前待解决问题（按优先级）
 
-- 当前仍有部分临时道具是"过渡实现"，需要进一步统一美术语义
-- 素材版权策略尚未完成商用替换（当前目标是先把体验做顺）
-- 工程根目录存在本地开发临时文件，不应提交构建缓存与截图产物
+> **接管后按顺序处理这些**，不要再次做大范围重构。
+
+1. **亮色 / 暗色双主题切换**
+   - 在 `AppSettings` 加 `isDarkMode` 字段（默认 `true`），需要在 `fromJson` 兼容缺失
+   - 在 `theme.dart` 加一份 `buildSmallGoalLightTheme()`
+   - 在 `app.dart` 用 `ThemeMode` + `themeMode: settings.isDarkMode ? dark : light`
+   - 在设置页加 Switch 入口
+   - 注意：`metric_card.dart`、`room_page.dart`、`settings_page.dart` 里有硬编码 `Colors.white70` / `Color(0xFF223147)`，亮色下要改成 `Theme.of(context).colorScheme.onSurfaceVariant` 之类
+
+2. **钱堆视觉立体感**
+   - 当前 `_MoneyBundle` 是纯 2D 矩形，要有渐变 / 光影 / 多层钞票叠放的深度感
+   - 可以用多个 `Container` 垂直偏移叠放模拟厚度
+   - 不同 tier 颜色腰封要更明显（蓝 → 绿 → 金渐进）
+
+3. **房间展示比例**
+   - 当前 `aspectRatio: 16/9`，可改为 `4/3` 或 `5/4` 让房间更高、更显眼
+   - 同时检查各元素像素坐标是否需要微调
+
+4. **庆祝动作更明显**
+   - `star_celebrate_32~37.png` 已在用，但可以再加：
+     - 钱从右上角飞向桌面的过场动画
+     - 角色旁边出现一个小钱袋 `_MoneyBag`
+     - 全屏金色光晕扩散
+
+5. **素材商用替换（中长期）**
+   - Star-Office-UI 是 MIT License 但最终发布前需要评估
+   - 备选：LPC（Liberated Pixel Cup）素材、Kenney.nl 免费素材
+
+---
+
+## 十、约束（**必须遵守**）
+
+从 `docs/AGENT_TAKEOVER_PROMPT.md` 迁移：
+
+- **不要改包名、统计口径、已有持久化字段**
+- **不要提交构建缓存、IDE 临时文件、本地截图**
+- **每轮改动后至少跑一次 `flutter analyze`**
+- **大改前先给出 3~5 条最小改动计划，得到用户确认后再实施**
+- **不要重做基础架构**（数据层已稳定）
+- **不要代码绘制替换原始场景素材**（保留 `office_bg.webp` 等）
+
+---
+
+## 十一、参考项目
+
+- **主要素材（已接入）**：[Star-Office-UI](https://github.com/ringhyacinth/Star-Office-UI) — 像素办公室全套素材
+- **角色行为参考**：[Pixel Agents](https://github.com/pablodelucca/pixel-agents)
+- **场景布局参考**：[Lobster Lounge](https://github.com/tsconfigdotjson/lobster-lounge)
+- **人物生成器（未来扩展）**：[Universal LPC Generator](https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator)
+
+---
+
+## 十二、每轮交付清单
+
+提交前附带：
+- **变更点**：改了什么
+- **影响范围**：哪些文件 / 哪些功能
+- **验证方式**：至少一条设备 / 模拟器验证步骤
+- **flutter analyze 结果**：必须 `No issues found!`
+
+如果需要打包安装，产物规则：
+- APK 放到旧服务器 `liq@172.16.246.15:/mnt/liq/work/temp/goal.apk`
+- 用户从那里下载到手机安装
+
+---
+
+**接管后请先阅读 `lib/widgets/star_office_room_stage.dart` 和本 README 第九节，再开始迭代。**
